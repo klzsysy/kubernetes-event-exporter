@@ -39,6 +39,9 @@ type EventWatcher struct {
 	annotationCache    *AnnotationCache
 	fn                 EventHandler
 	maxEventAgeSeconds time.Duration
+
+	unix         int64
+	secondsCount int64
 }
 
 func NewEventWatcher(config *rest.Config, namespace string, MaxEventAgeSeconds int64, fn EventHandler) *EventWatcher {
@@ -138,6 +141,19 @@ func (e *EventWatcher) onEvent(event *corev1.Event) {
 		ev.InvolvedObject.Annotations = annotations
 		ev.InvolvedObject.ObjectReference = *event.InvolvedObject.DeepCopy()
 	}
+
+	// keep event sequence
+	if e.unix == event.CreationTimestamp.Unix() {
+		// the same second
+		e.secondsCount++
+	} else {
+		e.unix = event.CreationTimestamp.Unix()
+		e.secondsCount = 1
+	}
+
+	// add time sequence
+	modT := event.CreationTimestamp.UTC().Add(time.Millisecond * time.Duration(e.secondsCount))
+	ev.Timestamp = modT.Format(time.RFC3339Nano)
 
 	e.fn(ev)
 }
