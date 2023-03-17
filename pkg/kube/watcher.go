@@ -40,8 +40,8 @@ type EventWatcher struct {
 	fn                 EventHandler
 	maxEventAgeSeconds time.Duration
 
-	unix         int64
-	secondsCount int64
+	lastCreationTimestamp int64
+	secondsCount          int64
 }
 
 func NewEventWatcher(config *rest.Config, namespace string, MaxEventAgeSeconds int64, fn EventHandler) *EventWatcher {
@@ -143,16 +143,17 @@ func (e *EventWatcher) onEvent(event *corev1.Event) {
 	}
 
 	// keep event sequence
-	if e.unix == event.CreationTimestamp.Unix() {
+	if e.lastCreationTimestamp == event.CreationTimestamp.Unix() {
 		// the same second
 		e.secondsCount++
 	} else {
-		e.unix = event.CreationTimestamp.Unix()
+		e.lastCreationTimestamp = event.CreationTimestamp.Unix()
 		e.secondsCount = 1
 	}
 
 	// add time sequence
-	modT := event.CreationTimestamp.UTC().Add(time.Millisecond * time.Duration(e.secondsCount))
+	// The biggest support 1 seconds 1000x1000 event sequence
+	modT := event.CreationTimestamp.UTC().Add(time.Microsecond * time.Duration(e.secondsCount))
 	ev.Timestamp = modT.Format(time.RFC3339Nano)
 
 	e.fn(ev)
