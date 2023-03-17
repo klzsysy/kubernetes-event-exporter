@@ -152,8 +152,8 @@ func (e *EventWatcher) onEvent(event *corev1.Event) {
 	}
 
 	// add time sequence
-	// The biggest support 1 seconds 1000x1000 event sequence
-	modT := event.CreationTimestamp.UTC().Add(time.Microsecond * time.Duration(e.secondsCount))
+	// The biggest support 1 seconds 1000 event sequence
+	modT := event.CreationTimestamp.UTC().Add(time.Millisecond * time.Duration(e.secondsCount))
 	ev.Timestamp = modT.Format(time.RFC3339Nano)
 
 	e.fn(ev)
