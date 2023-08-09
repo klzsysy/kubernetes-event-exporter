@@ -103,6 +103,15 @@ func (e *EventWatcher) onEvent(event *corev1.Event) {
 		return
 	}
 
+	// copy EventTime to LastTimestamp if empty
+	if event.LastTimestamp.IsZero() {
+		event.LastTimestamp.Time = event.EventTime.Time
+	}
+	// copy EventTime to FirstTimestamp if empty
+	if event.FirstTimestamp.IsZero() {
+		event.FirstTimestamp.Time = event.EventTime.Time
+	}
+
 	log.Debug().
 		Str("msg", event.Message).
 		Str("namespace", event.Namespace).
