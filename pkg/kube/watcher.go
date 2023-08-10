@@ -103,13 +103,9 @@ func (e *EventWatcher) onEvent(event *corev1.Event) {
 		return
 	}
 
-	// copy EventTime to LastTimestamp if empty
-	if event.LastTimestamp.IsZero() {
-		event.LastTimestamp.Time = event.EventTime.Time
-	}
-	// copy EventTime to FirstTimestamp if empty
-	if event.FirstTimestamp.IsZero() {
-		event.FirstTimestamp.Time = event.EventTime.Time
+	// copy FirstTimestamp to EventTime if empty
+	if event.EventTime.IsZero() {
+		event.EventTime.Time = event.FirstTimestamp.Time
 	}
 
 	log.Debug().
